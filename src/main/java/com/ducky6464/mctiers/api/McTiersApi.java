@@ -8,8 +8,8 @@ import java.util.regex.*;
 public final class McTiersApi {
     private static final String BASE="https://tier-master-mace.lovable.app/api/public/v1/player/";
     private static final HttpClient HTTP=HttpClient.newHttpClient();
-    private static final Pattern TIER=Pattern.compile("\\\"tier\\"\\s*:\\s*\\"([^\\"]+)\\"");
-    private static final Pattern LABEL=Pattern.compile("\\"label\\"\\s*:\\s*\\"([^\\"]+)\\"");
+    private static final Pattern TIER=Pattern.compile("\"tier\"\\s*:\s*\"([^\"]+)\"");
+    private static final Pattern LABEL=Pattern.compile("\"label\"\\s*:\s*\"([^\"]+)\"");
     private McTiersApi(){}
     public static CompletableFuture<TierResult> lookup(String username){
         if(!username.matches("[A-Za-z0-9_]{1,16}")) return CompletableFuture.completedFuture(null);
