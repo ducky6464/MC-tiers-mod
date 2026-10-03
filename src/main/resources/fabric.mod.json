@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "mctiers",
+  "version": "${version}",
+  "name": "MC-Tiers",
+  "description": "Client-side MC-Tiers ranking overlay.",
+  "authors": ["ducky6464"],
+  "environment": "client",
+  "entrypoints": { "client": ["com.ducky6464.mctiers.McTiersClient"] },
+  "mixins": ["mctiers.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "1.21.11",
+    "fabric-api": "*"
+  }
+}
