@@ -23,3 +23,5 @@ jobs:
           name: mc-tiers-1.21.11
           path: build/libs/mc-tiers-1.0.0.jar
           if-no-files-found: error
+
+# Trigger rebuild after dependency repository fix
