@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/mace.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": ["\uE000"]
+    }
+  ]
+}
