@@ -14,5 +14,9 @@ public final class TierCache {
             .thenApply(r->{if(r!=null)values.put(key,new TierResult(r.tier(),r.mode(),System.currentTimeMillis()+TTL));return r;})
             .whenComplete((r,e)->pending.remove(key)));
     }
+    public TierResult getCached(String username){
+        TierResult value = values.get(username.toLowerCase());
+        return value != null && !value.expired() ? value : null;
+    }
     public void clear(){values.clear();pending.clear();}
 }
