@@ -5,9 +5,11 @@ import com.ducky6464.mctiers.cache.TierResult;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.PlayerLikeEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.Style;
 import net.minecraft.util.Identifier;
+import net.minecraft.text.StyleSpriteSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,7 +33,7 @@ public abstract class PlayerEntityRendererMixin {
 
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
     private void mctiers$appendTier(
-            PlayerLikeEntity player,
+            PlayerEntity player,
             CallbackInfoReturnable<Text> cir
     ) {
         if (!McTiersClient.ENABLED || player == null) return;
@@ -49,7 +51,7 @@ public abstract class PlayerEntityRendererMixin {
                 Text.empty()
                         .append(original)
                         .append(Text.literal(" §7[§f" + label + " §7"))
-                        .append(Text.literal("\uE000").setStyle(Style.EMPTY.withFont(Identifier.of("mctiers", "mace"))))
+                        .append(Text.literal("\uE000").setStyle(Style.EMPTY.withFont(new StyleSpriteSource.Font(Identifier.of("mctiers", "mace")))))
                         .append(Text.literal("§7]"))
         );
     }
