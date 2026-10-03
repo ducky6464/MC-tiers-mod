@@ -6,6 +6,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.PlayerLikeEntity;
 import net.minecraft.text.Text;
+import net.minecraft.text.Style;
+import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -46,7 +48,9 @@ public abstract class PlayerEntityRendererMixin {
         cir.setReturnValue(
                 Text.empty()
                         .append(original)
-                        .append(Text.literal(" §7[§f" + label + "§7]"))
+                        .append(Text.literal(" §7[§f" + label + " §7"))
+                        .append(Text.literal("\uE000").setStyle(Style.EMPTY.withFont(Identifier.of("mctiers", "mace"))))
+                        .append(Text.literal("§7]"))
         );
     }
 }
