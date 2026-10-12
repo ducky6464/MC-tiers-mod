@@ -32,15 +32,15 @@ public final class McTiersApi {
         return HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
                     String body = response.body();
-                    if (response.statusCode() != 200 || !body.contains("\\"found\\":true")) {
+                    if (response.statusCode() != 200 || !body.contains("\"found\":true")) {
                         return null;
                     }
 
                     for (String key : modeKeys(mode)) {
                         Pattern pattern = Pattern.compile(
-                                "\\\"" + Pattern.quote(key) + "\\"\\s*:\\s*\\{[^}]*" +
-                                "\\\"tier\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"[^}]*" +
-                                "\\\"label\\\"\\s*:\\s*\\\"([^\\\"]+)\\\""
+                                "\"" + Pattern.quote(key) + "\"\\s*:\\s*\\{[^}]*" +
+                                "\"tier\"\\s*:\\s*\"([^\"]+)\"[^}]*" +
+                                "\"label\"\\s*:\\s*\"([^\"]+)\""
                         );
                         Matcher matcher = pattern.matcher(body);
                         if (matcher.find()) {
