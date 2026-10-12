@@ -5,8 +5,10 @@ import com.ducky6464.mctiers.cache.TierResult;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,12 +26,14 @@ public abstract class EntityRendererMixin {
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
-        String label = result.label();
-        if (label == null || label.isBlank()) return;
-
+        Text maceIcon = Text.literal("\uE000").setStyle(
+                Style.EMPTY.withFont(Identifier.of("mctiers", "mace")).withColor(Formatting.WHITE)
+        );
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
-                .append(Text.literal(label).formatted(Formatting.WHITE))
+                .append(Text.literal(result.tier()).formatted(Formatting.WHITE))
+                .append(Text.literal(" ").formatted(Formatting.GRAY))
+                .append(maceIcon)
                 .append(Text.literal("]").formatted(Formatting.GRAY));
 
         cir.setReturnValue(Text.empty().append(original).append(suffix));
