@@ -1,25 +1,48 @@
 package com.ducky6464.mctiers.api;
+
 import com.ducky6464.mctiers.cache.TierResult;
 import java.net.URI;
-import java.net.http.*;
-import java.util.concurrent.*;
-import java.util.regex.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class McTiersApi {
-    private static final String BASE="https://tier-master-mace.lovable.app/api/public/v1/player/";
-    private static final HttpClient HTTP=HttpClient.newHttpClient();
-    private static final Pattern TIER=Pattern.compile("\"tier\"\\s*:\s*\"([^\"]+)\"");
-    private static final Pattern LABEL=Pattern.compile("\"label\"\\s*:\s*\"([^\"]+)\"");
-    private McTiersApi(){}
-    public static CompletableFuture<TierResult> lookup(String username){
-        if(!username.matches("[A-Za-z0-9_]{1,16}")) return CompletableFuture.completedFuture(null);
-        HttpRequest q=HttpRequest.newBuilder(URI.create(BASE+username))
-                .header("Accept","application/json").GET().build();
-        return HTTP.sendAsync(q,HttpResponse.BodyHandlers.ofString()).thenApply(r->{
-            if(r.statusCode()!=200 || !r.body().contains("\"found\":true")) return null;
-            Matcher t=TIER.matcher(r.body()), l=LABEL.matcher(r.body());
-            if(!t.find()) return null;
-            return new TierResult(t.group(1), l.find()?l.group(1):"Tier", 0);
-        }).exceptionally(e->null);
+    private static final String BASE = "https://mc-tiers.lovable.app/api/public/v1/player/";
+    private static final HttpClient HTTP = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(5))
+            .build();
+    private static final Pattern MACE_TIER = Pattern.compile(
+            "\\\"mace\\\"\\s*:\\s*\\{[^}]*\\\"tier\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"[^}]*\\\"label\\\"\\s*:\\s*\\\"([^\\\"]+)\\\""
+    );
+
+    private McTiersApi() {}
+
+    public static CompletableFuture<TierResult> lookup(String username) {
+        if (username == null || !username.matches("[A-Za-z0-9_]{1,16}")) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(BASE + username))
+                .timeout(java.time.Duration.ofSeconds(8))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        return HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    if (response.statusCode() != 200 || !response.body().contains("\\"found\\":true")) {
+                        return null;
+                    }
+
+                    Matcher mace = MACE_TIER.matcher(response.body());
+                    if (!mace.find()) {
+                        return null;
+                    }
+                    return new TierResult(mace.group(1), mace.group(2), 0);
+                })
+                .exceptionally(error -> null);
     }
 }
