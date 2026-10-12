@@ -1,4 +1,4 @@
-name: Build MC Tiers Mod
+name: Build MC Tiers Mod (verification)
 on:
   workflow_dispatch:
   push:
