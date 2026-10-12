@@ -33,7 +33,7 @@ public final class McTiersApi {
 
         return HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
-                    if (response.statusCode() != 200 || !response.body().contains("\\\"found\\\":true")) {
+                    if (response.statusCode() != 200 || !response.body().contains("\"found\":true")) {
                         return null;
                     }
 
