@@ -1,5 +1,6 @@
 package com.ducky6464.mctiers.cache;
 
+import com.ducky6464.mctiers.ModeConfig;
 import com.ducky6464.mctiers.api.McTiersApi;
 import java.util.Locale;
 import java.util.Map;
@@ -28,8 +29,9 @@ public final class TierCache {
             misses.remove(key, missUntil);
         }
 
+        String selectedMode = ModeConfig.getMode();
         return pending.computeIfAbsent(key, ignored ->
-            McTiersApi.lookup(username)
+            McTiersApi.lookup(username, selectedMode)
                 .thenApply(result -> {
                     if (result == null) {
                         misses.put(key, System.currentTimeMillis() + TTL);
