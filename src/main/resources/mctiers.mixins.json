@@ -2,6 +2,11 @@
   "required": true,
   "package": "com.ducky6464.mctiers.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["PlayerEntityRendererMixin"],
-  "injectors": { "defaultRequire": 1 }
+  "client": [
+    "PlayerEntityRendererMixin",
+    "EntityRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
