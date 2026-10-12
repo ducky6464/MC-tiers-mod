@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,8 +27,11 @@ public abstract class EntityRendererMixin {
         String label = result.label();
         if (label == null || label.isBlank()) return;
 
-        cir.setReturnValue(Text.empty()
-                .append(original)
-                .append(Text.literal(" §7[§f" + label + "§7]")));
+        Text suffix = Text.empty()
+                .append(Text.literal(" [").formatted(Formatting.GRAY))
+                .append(Text.literal(label).formatted(Formatting.WHITE))
+                .append(Text.literal("]").formatted(Formatting.GRAY));
+
+        cir.setReturnValue(Text.empty().append(original).append(suffix));
     }
 }
