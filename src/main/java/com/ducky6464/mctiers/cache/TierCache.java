@@ -15,7 +15,8 @@ public final class TierCache {
     private final Map<String, CompletableFuture<TierResult>> pending = new ConcurrentHashMap<>();
 
     public CompletableFuture<TierResult> get(String username) {
-        String key = username.toLowerCase(Locale.ROOT);
+        String selectedMode = ModeConfig.getMode();
+        String key = username.toLowerCase(Locale.ROOT) + "|" + selectedMode;
         TierResult cached = values.get(key);
         if (cached != null && !cached.expired()) {
             return CompletableFuture.completedFuture(cached);
@@ -29,7 +30,6 @@ public final class TierCache {
             misses.remove(key, missUntil);
         }
 
-        String selectedMode = ModeConfig.getMode();
         return pending.computeIfAbsent(key, ignored ->
             McTiersApi.lookup(username, selectedMode)
                 .thenApply(result -> {
@@ -55,7 +55,8 @@ public final class TierCache {
     }
 
     public TierResult getCached(String username) {
-        TierResult value = values.get(username.toLowerCase(Locale.ROOT));
+        String key = username.toLowerCase(Locale.ROOT) + "|" + ModeConfig.getMode();
+        TierResult value = values.get(key);
         return value != null && !value.expired() ? value : null;
     }
 
