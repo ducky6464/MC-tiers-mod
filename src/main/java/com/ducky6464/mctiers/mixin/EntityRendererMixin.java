@@ -26,10 +26,10 @@ public abstract class EntityRendererMixin {
         Text original = cir.getReturnValue();
         if (original == null) return;
 
-        String font = modeFont(McTiersClient.CACHE.getCached(player.getGameProfile().name()).mode());
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
+        String font = modeFont(result.mode());
         Text icon = Text.literal("\uE000").setStyle(
                 Style.EMPTY.withFont(new StyleSpriteSource.Font(Identifier.of("mctiers", "font/" + font)))
         );
