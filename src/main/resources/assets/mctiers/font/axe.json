@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/netherite_axe.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        ""
+      ]
+    }
+  ]
+}

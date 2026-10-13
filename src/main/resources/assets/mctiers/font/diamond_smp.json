@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/cobweb.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        ""
+      ]
+    }
+  ]
+}
