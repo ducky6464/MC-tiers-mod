@@ -1,15 +1,15 @@
 package com.ducky6464.mctiers;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
 
 public final class ModeSelectionScreen extends Screen {
     private final Screen parent;
 
     public ModeSelectionScreen(Screen parent) {
-        super(Text.literal("MC-Tiers: Select Game Mode"));
+        super(Component.literal("MC-Tiers: Select Game Mode"));
         this.parent = parent;
     }
 
@@ -30,29 +30,27 @@ public final class ModeSelectionScreen extends Screen {
             if (ModeConfig.getMode().equalsIgnoreCase(mode)) {
                 label = "✓ " + label + " (Selected)";
             }
-            addDrawableChild(ButtonWidget.builder(Text.literal(label), button -> {
+            addRenderableWidget(Button.builder(Component.literal(label), button -> {
                 ModeConfig.setMode(mode);
-                if (client != null) client.setScreen(new ModeSelectionScreen(parent));
-            }).dimensions(startX + column * (buttonWidth + gap), startY + row * 26, buttonWidth, 20).build());
+                if (minecraft != null) minecraft.setScreen(new ModeSelectionScreen(parent));
+            }).bounds(startX + column * (buttonWidth + gap), startY + row * 26, buttonWidth, 20).build());
         }
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Done"), button -> close())
-                .dimensions(this.width / 2 - 75, startY + 3 * 26 + 8, 150, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
+                .bounds(this.width / 2 - 75, startY + 3 * 26 + 8, 150, 20).build());
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, 0xFFFFFF);
-        context.drawCenteredTextWithShadow(textRenderer,
-                Text.literal("Press K anytime to change the displayed tier mode"),
-                width / 2, 36, 0xAAAAAA);
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(font, title, width / 2 - font.width(title) / 2, 20, 0xFFFFFFFF, true);
+        Component hint = Component.literal("Press K anytime to change the displayed tier mode");
+        graphics.text(font, hint, width / 2 - font.width(hint) / 2, 36, 0xFFAAAAAA, true);
     }
 
     @Override
-    public void close() {
-        if (client != null) client.setScreen(parent);
+    public void onClose() {
+        if (minecraft != null) minecraft.setScreen(parent);
     }
 
     private static String prettyName(String mode) {
