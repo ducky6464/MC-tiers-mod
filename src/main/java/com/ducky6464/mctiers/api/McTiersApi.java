@@ -37,14 +37,19 @@ public final class McTiersApi {
                     }
 
                     for (String key : modeKeys(mode)) {
-                        Pattern pattern = Pattern.compile(
-                                "\"" + Pattern.quote(key) + "\"\\s*:\\s*\\{[^}]*" +
-                                "\"tier\"\\s*:\\s*\"([^\"]+)\"[^}]*" +
-                                "\"label\"\\s*:\\s*\"([^\"]+)\""
+                        // Parse the selected mode object first, then read its tier field.
+                        // This does not depend on the JSON field order (tier/label can swap).
+                        Pattern modePattern = Pattern.compile(
+                                "\"" + Pattern.quote(key) + "\"\\s*:\\s*\\{([^{}]*)\\}"
                         );
-                        Matcher matcher = pattern.matcher(body);
-                        if (matcher.find()) {
-                            return new TierResult(matcher.group(1), matcher.group(2), 0);
+                        Matcher modeMatcher = modePattern.matcher(body);
+                        if (!modeMatcher.find()) continue;
+
+                        Matcher tierMatcher = Pattern.compile(
+                                "\"tier\"\\s*:\\s*\"([^\"]+)\""
+                        ).matcher(modeMatcher.group(1));
+                        if (tierMatcher.find()) {
+                            return new TierResult(tierMatcher.group(1), mode, 0);
                         }
                     }
                     return null;
@@ -54,9 +59,9 @@ public final class McTiersApi {
 
     private static List<String> modeKeys(String mode) {
         return switch (mode) {
-            case "diamond_smp" -> List.of("diamond_smp", "diamondSmp", "diamondSMP");
-            case "diamondpot" -> List.of("diamondpot", "diamondPot", "diamond_pot");
-            case "netpot" -> List.of("netpot", "netPot", "netheritePot");
+            case "diamond_smp" -> List.of("diamond_smp", "diamondSmp", "diamondSMP", "diamondsmp");
+            case "diamondpot" -> List.of("diamondpot", "diamondPot", "diamond_pot", "diamond_potting");
+            case "netpot" -> List.of("netpot", "netPot", "netheritePot", "netherite_pot");
             default -> List.of(mode);
         };
     }
