@@ -52,7 +52,7 @@ public abstract class EntityRendererMixin {
             case "mace" -> "item/mace";
             case "sword" -> "item/netherite_sword";
             case "uhc" -> "item/golden_apple";
-            case "netpot" -> "item/netherite_ingot";
+            case "netpot" -> "item/netherite_helmet";
             case "diamondpot" -> "item/potion";
             case "crystal" -> "item/end_crystal";
             case "axe" -> "item/netherite_axe";
