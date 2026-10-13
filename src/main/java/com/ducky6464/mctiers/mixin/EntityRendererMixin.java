@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Style;
+import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Formatting;
@@ -25,12 +26,12 @@ public abstract class EntityRendererMixin {
         Text original = cir.getReturnValue();
         if (original == null) return;
 
+        String font = modeFont(McTiersClient.CACHE.getCached(player.getGameProfile().name()).mode());
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
-        String font = modeFont(result.mode());
         Text icon = Text.literal("\uE000").setStyle(
-                Style.EMPTY.withFont(Identifier.of("mctiers", "font/" + font))
+                Style.EMPTY.withFont(new StyleSpriteSource.Font(Identifier.of("mctiers", "font/" + font)))
         );
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
