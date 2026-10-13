@@ -29,7 +29,7 @@ public abstract class EntityRendererMixin {
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
         String font = modeFont(result.mode());
-        Text icon = Text.literal("\\uE000").setStyle(
+        Text icon = Text.literal("\uE000").setStyle(
                 Style.EMPTY.withFont(Identifier.of("mctiers", "font/" + font))
         );
         Text suffix = Text.empty()
