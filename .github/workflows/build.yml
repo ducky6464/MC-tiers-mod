@@ -23,7 +23,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "9.2.0"
+          gradle-version: "9.7.0"
       - name: Build Minecraft 26.1 mod
         run: gradle clean build --no-daemon --stacktrace
       - name: Verify mod JAR
