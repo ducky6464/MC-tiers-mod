@@ -42,7 +42,10 @@ public final class ModeSelectionScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
+        // Draw a plain translucent background instead of calling renderBackground(),
+        // which may request the frame's blur effect a second time when other mods
+        // also render blurred screens.
+        context.fill(0, 0, this.width, this.height, 0xE0101010);
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.literal("Press K anytime to change the displayed tier mode"),
