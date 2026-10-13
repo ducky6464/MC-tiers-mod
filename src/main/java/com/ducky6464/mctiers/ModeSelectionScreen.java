@@ -1,6 +1,6 @@
 package com.ducky6464.mctiers;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -41,13 +41,11 @@ public final class ModeSelectionScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics, mouseX, mouseY, delta);
-        graphics.drawCenteredString(font, title, width / 2, 20, 0xFFFFFF);
-        graphics.drawCenteredString(font,
-                Component.literal("Press K anytime to change the displayed tier mode"),
-                width / 2, 36, 0xAAAAAA);
-        super.render(graphics, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(font, title, width / 2 - font.width(title) / 2, 20, 0xFFFFFFFF, true);
+        Component hint = Component.literal("Press K anytime to change the displayed tier mode");
+        graphics.text(font, hint, width / 2 - font.width(hint) / 2, 36, 0xFFAAAAAA, true);
     }
 
     @Override
