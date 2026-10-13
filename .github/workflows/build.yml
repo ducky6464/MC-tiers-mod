@@ -24,15 +24,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.4.0"
-      - name: Build
-        run: gradle build --no-daemon
-      - name: Verify JAR
+      - name: Build Minecraft 26.1 mod
+        run: gradle clean build --no-daemon --stacktrace
+      - name: Verify mod JAR
+        shell: bash
         run: |
-          test -f build/libs/mc-tiers-1.0.1.jar
-          unzip -l build/libs/mc-tiers-1.0.1.jar | grep -q 'fabric.mod.json'
+          JAR="$(find build/libs -maxdepth 1 -type f -name 'mc-tiers-*.jar' ! -name '*-sources.jar' | head -n 1)"
+          test -n "$JAR"
+          unzip -l "$JAR" | grep -q 'fabric.mod.json'
+          echo "Verified: $JAR"
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: mc-tiers-26.1
-          path: build/libs/mc-tiers-1.0.1.jar
+          path: build/libs/mc-tiers-*.jar
           if-no-files-found: error
