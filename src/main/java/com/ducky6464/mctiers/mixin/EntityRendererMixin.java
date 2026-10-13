@@ -5,9 +5,8 @@ import com.ducky6464.mctiers.cache.TierResult;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Style;
-import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
+import net.minecraft.text.object.AtlasTextObjectContents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,10 +28,14 @@ public abstract class EntityRendererMixin {
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
-        String font = modeFont(result.mode());
-        Text icon = Text.literal("\uE000").setStyle(
-                Style.EMPTY.withFont(new StyleSpriteSource.Font(Identifier.of("mctiers", "font/" + font)))
-        );
+        String sprite = modeSprite(result.mode());
+        boolean blockSprite = sprite.startsWith("block/");
+        Identifier atlas = Identifier.of("minecraft", blockSprite ? "blocks" : "items");
+        Text icon = Text.object(new AtlasTextObjectContents(
+                atlas,
+                Identifier.of("minecraft", sprite)
+        ));
+
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
                 .append(Text.literal(result.tier()).formatted(Formatting.WHITE))
@@ -43,19 +46,19 @@ public abstract class EntityRendererMixin {
         cir.setReturnValue(Text.empty().append(original).append(suffix));
     }
 
-    private static String modeFont(String mode) {
-        if (mode == null) return "mace";
+    private static String modeSprite(String mode) {
+        if (mode == null) return "item/mace";
         return switch (mode.toLowerCase(Locale.ROOT).replace('-', '_').replace(' ', '_')) {
-            case "mace" -> "mace";
-            case "sword" -> "sword";
-            case "uhc" -> "uhc";
-            case "netpot" -> "netpot";
-            case "diamondpot" -> "diamondpot";
-            case "crystal" -> "crystal";
-            case "axe" -> "axe";
-            case "smp" -> "smp";
-            case "diamond_smp", "diamondsmp" -> "diamond_smp";
-            default -> "mace";
+            case "mace" -> "item/mace";
+            case "sword" -> "item/netherite_sword";
+            case "uhc" -> "item/golden_apple";
+            case "netpot" -> "item/netherite_ingot";
+            case "diamondpot" -> "item/diamond";
+            case "crystal" -> "item/end_crystal";
+            case "axe" -> "item/netherite_axe";
+            case "smp" -> "item/netherite_chestplate";
+            case "diamond_smp", "diamondsmp" -> "block/cobweb";
+            default -> "item/mace";
         };
     }
 }
