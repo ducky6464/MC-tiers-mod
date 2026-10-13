@@ -7,6 +7,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.Locale;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,11 +26,28 @@ public abstract class EntityRendererMixin {
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
+        String icon = modeIcon(result.mode());
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
                 .append(Text.literal(result.tier()).formatted(Formatting.WHITE))
-                .append(Text.literal(" " + result.mode() + "]").formatted(Formatting.GRAY));
+                .append(Text.literal(" " + icon + "]").formatted(Formatting.GRAY));
 
         cir.setReturnValue(Text.empty().append(original).append(suffix));
+    }
+
+    private static String modeIcon(String mode) {
+        if (mode == null) return "?";
+        return switch (mode.toLowerCase(Locale.ROOT).replace('-', '_').replace(' ', '_')) {
+            case "mace" -> "✦";
+            case "sword" -> "⚔";
+            case "uhc" -> "♥";
+            case "netpot" -> "◉";
+            case "diamondpot" -> "◆";
+            case "crystal" -> "◇";
+            case "axe" -> "⚒";
+            case "smp" -> "▣";
+            case "diamond_smp", "diamondsmp" -> "⛓";
+            default -> "?";
+        };
     }
 }
