@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "minecraft:item/diamond.png",
+      "file": "minecraft:item/potion.png",
       "ascent": 8,
       "height": 8,
       "chars": [
