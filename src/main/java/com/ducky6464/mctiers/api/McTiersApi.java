@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class McTiersApi {
-    private static final String BASE = "https://mc-tiers.lovable.app/api/public/v1/player/";
+    private static final String BASE = "https://mc-tiers.pages.dev/api/public/v1/player/";
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(5))
             .build();
@@ -40,7 +40,7 @@ public final class McTiersApi {
                         // Parse the selected mode object first, then read its tier field.
                         // This does not depend on the JSON field order (tier/label can swap).
                         Pattern modePattern = Pattern.compile(
-                                "\"" + Pattern.quote(key) + "\"\\s*:\\s*\\{([^{}]*)\\}"
+                                "\""+ Pattern.quote(key) + "\"\\s*:\\s*\\{([^{}]*)\\}"
                         );
                         Matcher modeMatcher = modePattern.matcher(body);
                         if (!modeMatcher.find()) continue;
