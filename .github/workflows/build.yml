@@ -26,13 +26,15 @@ jobs:
           gradle-version: "9.2.0"
       - name: Build
         run: gradle build --no-daemon
+      - name: Name JAR
+        run: cp build/libs/mc-tiers-1.0.0.jar build/libs/mc-tiers_v2_1.21.11.jar
       - name: Verify JAR
         run: |
-          test -f build/libs/mc-tiers-1.0.0.jar
-          unzip -l build/libs/mc-tiers-1.0.0.jar | grep -q 'fabric.mod.json'
+          test -f build/libs/mc-tiers_v2_1.21.11.jar
+          unzip -l build/libs/mc-tiers_v2_1.21.11.jar | grep -q 'fabric.mod.json'
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
-          name: mc-tiers-1.21.11
-          path: build/libs/mc-tiers-1.0.0.jar
+          name: mc-tiers_v2_1.21.11
+          path: build/libs/mc-tiers_v2_1.21.11.jar
           if-no-files-found: error
