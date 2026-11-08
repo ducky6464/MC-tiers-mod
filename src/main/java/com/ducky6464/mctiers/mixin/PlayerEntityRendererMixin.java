@@ -34,9 +34,9 @@ public abstract class PlayerEntityRendererMixin {
     }
 
     /**
-     * In 1.21.11 the nameplate text is copied into the render state before
-     * the label is queued. Append the tier to that per-frame state instead
-     * of changing EntityRenderer#getDisplayName.
+     * In 1.21.11 the player nameplate uses PlayerEntityRenderState.playerName.
+     * Append the tier to that per-frame field instead of changing the generic
+     * EntityRenderer display-name field.
      */
     @Inject(method = "updateRenderState", at = @At("TAIL"))
     private void mctiers$appendTierToRenderState(
@@ -49,7 +49,7 @@ public abstract class PlayerEntityRendererMixin {
 
         TierResult result = McTiersClient.CACHE.getCached(playerEntity.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
-        if (state.displayName == null) return;
+        if (state.playerName == null) return;
 
         Text icon = Text.literal(modeGlyph(result.mode())).formatted(modeColor(result.mode()));
         Text suffix = Text.empty()
@@ -59,7 +59,7 @@ public abstract class PlayerEntityRendererMixin {
                 .append(icon)
                 .append(Text.literal("]").formatted(Formatting.GRAY));
 
-        state.displayName = Text.empty().append(state.displayName).append(suffix);
+        state.playerName = Text.empty().append(state.playerName).append(suffix);
     }
 
     // Text glyphs are part of the mod's text, not vanilla item textures.
