@@ -56,12 +56,4 @@ public final class McTiersApi {
                 .exceptionally(error -> null);
     }
 
-    private static List<String> modeKeys(String mode) {
-        return switch (mode) {
-            case "diamond_smp" -> List.of("diamond_smp", "diamondSmp", "diamondSMP", "diamondsmp");
-            case "diamondpot" -> List.of("diamondpot", "diamondPot", "diamond_pot", "diamond_potting");
-            case "netpot" -> List.of("netpot", "netPot", "netheritePot", "netherite_pot");
-            default -> List.of(mode);
-        };
-    }
 }
