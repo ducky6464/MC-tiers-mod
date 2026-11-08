@@ -4,67 +4,88 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+
+import java.util.List;
 
 public final class ModeSelectionScreen extends Screen {
     private final Screen parent;
 
     public ModeSelectionScreen(Screen parent) {
-        super(Text.literal("MC-Tiers: Select Game Mode"));
+        super(Text.literal("MC-Tiers"));
         this.parent = parent;
     }
 
     @Override
     protected void init() {
-        int buttonWidth = 150;
-        int gap = 8;
+        List<ModeConfig.ModeOption> modes = ModeConfig.getModes();
         int columns = 3;
-        int totalWidth = columns * buttonWidth + (columns - 1) * gap;
-        int startX = (this.width - totalWidth) / 2;
-        int startY = Math.max(50, this.height / 2 - 65);
+        int gap = 5;
+        int buttonHeight = 22;
+        int panelWidth = Math.min(330, this.width - 16);
+        int buttonWidth = Math.max(72, (panelWidth - 28 - (columns - 1) * gap) / columns);
+        int rows = (int) Math.ceil(modes.size() / (double) columns);
+        int gridHeight = rows * buttonHeight + Math.max(0, rows - 1) * gap;
+        int panelHeight = 48 + gridHeight + 48;
+        int panelX = (this.width - panelWidth) / 2;
+        int panelY = Math.max(8, (this.height - panelHeight) / 2);
+        int startX = panelX + (panelWidth - (columns * buttonWidth + (columns - 1) * gap)) / 2;
+        int startY = panelY + 48;
 
-        for (int i = 0; i < ModeConfig.MODES.length; i++) {
-            final String mode = ModeConfig.MODES[i];
+        for (int i = 0; i < modes.size(); i++) {
+            ModeConfig.ModeOption option = modes.get(i);
             int column = i % columns;
             int row = i / columns;
-            String label = prettyName(mode);
-            if (ModeConfig.getMode().equalsIgnoreCase(mode)) {
-                label = "✓ " + label + " (Selected)";
-            }
+            boolean selected = ModeConfig.getMode().equals(option.id());
+            String label = (selected ? "✓ " : "") + option.label();
+
             addDrawableChild(ButtonWidget.builder(Text.literal(label), button -> {
-                ModeConfig.setMode(mode);
+                ModeConfig.setMode(option.id());
                 if (client != null) client.setScreen(new ModeSelectionScreen(parent));
-            }).dimensions(startX + column * (buttonWidth + gap), startY + row * 26, buttonWidth, 20).build());
+            }).dimensions(startX + column * (buttonWidth + gap),
+                    startY + row * (buttonHeight + gap), buttonWidth, buttonHeight).build());
         }
 
+        int doneY = startY + gridHeight + 10;
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), button -> close())
-                .dimensions(this.width / 2 - 75, startY + 3 * 26 + 8, 150, 20).build());
+                .dimensions(this.width / 2 - 48, doneY, 96, 20).build());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw a plain translucent background instead of calling renderBackground(),
-        // which may request the frame's blur effect a second time when other mods
-        // also render blurred screens.
-        context.fill(0, 0, this.width, this.height, 0xE0101010);
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, 0xFFFFFF);
+        List<ModeConfig.ModeOption> modes = ModeConfig.getModes();
+        int columns = 3;
+        int gap = 5;
+        int buttonHeight = 22;
+        int panelWidth = Math.min(330, this.width - 16);
+        int buttonWidth = Math.max(72, (panelWidth - 28 - (columns - 1) * gap) / columns);
+        int rows = (int) Math.ceil(modes.size() / (double) columns);
+        int gridHeight = rows * buttonHeight + Math.max(0, rows - 1) * gap;
+        int panelHeight = 48 + gridHeight + 48;
+        int panelX = (this.width - panelWidth) / 2;
+        int panelY = Math.max(8, (this.height - panelHeight) / 2);
+
+        context.fill(0, 0, this.width, this.height, 0xB9000000);
+        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xF0141925);
+        context.fill(panelX, panelY, panelX + panelWidth, panelY + 2, 0xFF55D6D0);
+        context.fill(panelX + 1, panelY + 2, panelX + panelWidth - 1, panelY + 3, 0xFF283D4A);
         context.drawCenteredTextWithShadow(textRenderer,
-                Text.literal("Press K anytime to change the displayed tier mode"),
-                width / 2, 36, 0xAAAAAA);
+                Text.literal("MC-TIERS").formatted(Formatting.BOLD, Formatting.AQUA),
+                width / 2, panelY + 10, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer,
+                Text.literal("SELECT A GAME MODE").formatted(Formatting.GRAY),
+                width / 2, panelY + 27, 0xFFB8C4D0);
+
+        int doneY = panelY + 48 + gridHeight + 10;
+        context.drawCenteredTextWithShadow(textRenderer,
+                Text.literal("Mode list syncs with the website").formatted(Formatting.DARK_GRAY),
+                width / 2, doneY + 25, 0xFF808B99);
+
         super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
     public void close() {
         if (client != null) client.setScreen(parent);
-    }
-
-    private static String prettyName(String mode) {
-        return switch (mode) {
-            case "uhc" -> "UHC";
-            case "netpot" -> "Netherite Pot";
-            case "diamondpot" -> "Diamond Pot";
-            case "diamond_smp" -> "Diamond SMP";
-            default -> mode.substring(0, 1).toUpperCase() + mode.substring(1);
-        };
     }
 }
