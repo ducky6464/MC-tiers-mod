@@ -6,8 +6,6 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.object.AtlasTextObjectContents;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,14 +26,7 @@ public abstract class EntityRendererMixin {
         TierResult result = McTiersClient.CACHE.getCached(player.getGameProfile().name());
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
 
-        String sprite = modeSprite(result.mode());
-        boolean blockSprite = sprite.startsWith("block/");
-        Identifier atlas = Identifier.of("minecraft", blockSprite ? "blocks" : "items");
-        Text icon = Text.object(new AtlasTextObjectContents(
-                atlas,
-                Identifier.of("minecraft", sprite)
-        ));
-
+        Text icon = Text.literal(modeGlyph(result.mode())).formatted(modeColor(result.mode()));
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
                 .append(Text.literal(result.tier()).formatted(Formatting.WHITE))
@@ -46,19 +37,46 @@ public abstract class EntityRendererMixin {
         cir.setReturnValue(Text.empty().append(original).append(suffix));
     }
 
-    private static String modeSprite(String mode) {
-        if (mode == null) return "item/mace";
-        return switch (mode.toLowerCase(Locale.ROOT).replace('-', '_').replace(' ', '_')) {
-            case "mace" -> "item/mace";
-            case "sword" -> "item/netherite_sword";
-            case "uhc" -> "item/golden_apple";
-            case "netpot" -> "item/netherite_helmet";
-            case "diamondpot" -> "item/potion";
-            case "crystal" -> "item/end_crystal";
-            case "axe" -> "item/netherite_axe";
-            case "smp" -> "item/netherite_chestplate";
-            case "diamond_smp", "diamondsmp" -> "block/cobweb";
-            default -> "item/mace";
+    // Text glyphs are part of the mod's text, not Minecraft item textures.
+    // Resource packs that replace the End Crystal or other item models cannot change these.
+    private static String modeGlyph(String mode) {
+        String normalized = normalize(mode);
+        return switch (normalized) {
+            case "mace" -> "✦";
+            case "spear" -> "▲";
+            case "sword" -> "◆";
+            case "uhc" -> "♥";
+            case "netpot" -> "●";
+            case "diamondpot" -> "✧";
+            case "crystal" -> "◇";
+            case "axe" -> "■";
+            case "smp" -> "⬟";
+            case "diamondsmp" -> "◈";
+            case "ht3cart" -> "✚";
+            default -> "◆";
         };
+    }
+
+    private static Formatting modeColor(String mode) {
+        return switch (normalize(mode)) {
+            case "mace" -> Formatting.GOLD;
+            case "spear" -> Formatting.AQUA;
+            case "sword" -> Formatting.LIGHT_PURPLE;
+            case "uhc" -> Formatting.RED;
+            case "netpot" -> Formatting.DARK_PURPLE;
+            case "diamondpot" -> Formatting.BLUE;
+            case "crystal" -> Formatting.AQUA;
+            case "axe" -> Formatting.DARK_GREEN;
+            case "smp" -> Formatting.GREEN;
+            case "diamondsmp" -> Formatting.DARK_AQUA;
+            case "ht3cart" -> Formatting.YELLOW;
+            default -> Formatting.GRAY;
+        };
+    }
+
+    private static String normalize(String mode) {
+        if (mode == null) return "";
+        String normalized = mode.toLowerCase(Locale.ROOT).replace("-", "").replace("_", "").replace(" ", "");
+        return normalized.equals("diamondsmp") ? "diamondsmp" : normalized;
     }
 }
