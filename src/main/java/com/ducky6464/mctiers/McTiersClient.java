@@ -16,6 +16,7 @@ public final class McTiersClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ModeConfig.load();
+        ModeConfig.refreshModes();
         openModeMenu = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.mctiers.open_mode_menu",
                 InputUtil.Type.KEYSYM,
