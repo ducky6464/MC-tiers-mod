@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class TierCache {
     private static final long TTL = 600_000L;
+    // Retry missing or temporarily unavailable lookups much sooner than successful results.
+    private static final long MISS_TTL = 30_000L;
 
     private final Map<String, TierResult> values = new ConcurrentHashMap<>();
     private final Map<String, Long> misses = new ConcurrentHashMap<>();
@@ -34,7 +36,7 @@ public final class TierCache {
             McTiersApi.lookup(username, selectedMode)
                 .thenApply(result -> {
                     if (result == null) {
-                        misses.put(key, System.currentTimeMillis() + TTL);
+                        misses.put(key, System.currentTimeMillis() + MISS_TTL);
                     } else {
                         values.put(key, new TierResult(
                             result.tier(),
@@ -47,7 +49,7 @@ public final class TierCache {
                 })
                 .whenComplete((result, error) -> {
                     if (error != null) {
-                        misses.put(key, System.currentTimeMillis() + TTL);
+                        misses.put(key, System.currentTimeMillis() + MISS_TTL);
                     }
                     pending.remove(key);
                 })
