@@ -6,6 +6,7 @@
   "description": "Shows MC-Tiers player rankings above nametags. Select a game mode to display each player's tier.",
   "authors": ["ducky6464"],
   "environment": "client",
+  "icon": "assets/mctiers/icon.png",
   "entrypoints": { "client": ["com.ducky6464.mctiers.McTiersClient"] },
   "mixins": ["mctiers.mixins.json"],
   "depends": {
