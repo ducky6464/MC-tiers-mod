@@ -17,6 +17,8 @@ import java.util.concurrent.CompletionException;
 public final class McTiersApi {
     private static final Logger LOGGER = LoggerFactory.getLogger("MC-Tiers/API");
     private static final String BASE = "https://mc-tiers.pages.dev/api/public/v1/player/";
+    private static final String REPORT_URL = "https://mctiers-error-reporter.duckbahaduri.workers.dev/report";
+    private static final String MOD_VERSION = "1.0.0";
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(5))
             .build();
@@ -25,11 +27,11 @@ public final class McTiersApi {
 
     public static CompletableFuture<TierResult> lookup(String username, String mode) {
         if (username == null || !username.matches("[A-Za-z0-9_]{1,16}")) {
-            LOGGER.warn("LOOKUP_INVALID_USERNAME: Cannot look up username '{}'.", username);
+            LOGGER.warn("LOOKUP_INVALID_USERNAME: Invalid player name supplied.");
             return CompletableFuture.completedFuture(null);
         }
 
-        LOGGER.info("LOOKUP_START: player='{}', mode='{}'.", username, mode);
+        LOGGER.info("LOOKUP_START: mode='{}'.", mode);
 
         HttpRequest request = HttpRequest.newBuilder(URI.create(BASE + username))
                 .timeout(java.time.Duration.ofSeconds(8))
@@ -41,83 +43,114 @@ public final class McTiersApi {
                 .thenApply(response -> {
                     int status = response.statusCode();
                     if (status != 200) {
-                        LOGGER.error("LOOKUP_HTTP_ERROR: player='{}', mode='{}', HTTP status={}. Response preview: {}",
-                                username, mode, status, preview(response.body()));
+                        LOGGER.error("LOOKUP_HTTP_ERROR: mode='{}', HTTP status={}.", mode, status);
+                        report("HTTP_ERROR", mode, status, null, "MC-Tiers API returned a non-200 status.", null);
                         return null;
                     }
 
                     try {
                         JsonElement parsed = JsonParser.parseString(response.body());
                         if (!parsed.isJsonObject()) {
-                            LOGGER.error("LOOKUP_BAD_JSON_SHAPE: player='{}', mode='{}'. Expected a JSON object, got: {}",
-                                    username, mode, parsed.getClass().getSimpleName());
+                            LOGGER.error("LOOKUP_BAD_JSON_SHAPE: Expected a JSON object.");
+                            report("BAD_JSON", mode, null, "UnexpectedJsonShape", "API response was not a JSON object.", null);
                             return null;
                         }
 
                         JsonObject root = parsed.getAsJsonObject();
                         if (!root.has("found") || !root.get("found").isJsonPrimitive()) {
-                            LOGGER.error("LOOKUP_MISSING_FOUND_FIELD: player='{}'. Top-level JSON keys: {}",
-                                    username, root.keySet());
+                            LOGGER.error("LOOKUP_MISSING_FOUND_FIELD: Top-level JSON keys: {}", root.keySet());
+                            report("MISSING_FIELD", mode, null, null, "API response is missing a valid 'found' field.", root.keySet().toString());
                             return null;
                         }
                         if (!root.get("found").getAsBoolean()) {
-                            LOGGER.warn("LOOKUP_PLAYER_NOT_FOUND: Website API did not find player '{}'.", username);
+                            LOGGER.warn("LOOKUP_PLAYER_NOT_FOUND: Website API did not find the requested player.");
+                            report("PLAYER_NOT_FOUND", mode, null, null, "The website API returned found=false.", null);
                             return null;
                         }
 
                         JsonObject tiers = root.has("tiers") && root.get("tiers").isJsonObject()
                                 ? root.getAsJsonObject("tiers") : null;
                         if (tiers == null) {
-                            LOGGER.error("LOOKUP_MISSING_TIERS_OBJECT: player='{}'. Top-level JSON keys: {}",
-                                    username, root.keySet());
+                            LOGGER.error("LOOKUP_MISSING_TIERS_OBJECT: Top-level JSON keys: {}", root.keySet());
+                            report("MISSING_FIELD", mode, null, null, "API response is missing the tiers object.", root.keySet().toString());
                             return null;
                         }
                         if (!tiers.has(mode)) {
-                            LOGGER.error("LOOKUP_MODE_MISSING: player='{}', requested mode='{}'. Available mode keys: {}",
-                                    username, mode, tiers.keySet());
+                            LOGGER.error("LOOKUP_MODE_MISSING: requested mode='{}'. Available mode keys: {}", mode, tiers.keySet());
+                            report("MODE_MISSING", mode, null, null, "Requested mode key was not present in the API response.", tiers.keySet().toString());
                             return null;
                         }
 
                         JsonElement selected = tiers.get(mode);
                         if (selected == null || !selected.isJsonObject()) {
-                            LOGGER.error("LOOKUP_BAD_MODE_ENTRY: player='{}', mode='{}'. Expected an object, got: {}",
-                                    username, mode, selected);
+                            LOGGER.error("LOOKUP_BAD_MODE_ENTRY: Expected a JSON object for the selected mode.");
+                            report("BAD_JSON", mode, null, "UnexpectedModeEntry", "Selected mode entry was not a JSON object.", null);
                             return null;
                         }
 
                         JsonObject selectedTier = selected.getAsJsonObject();
                         if (!selectedTier.has("tier") || selectedTier.get("tier").isJsonNull()) {
-                            LOGGER.error("LOOKUP_TIER_FIELD_MISSING: player='{}', mode='{}'. Mode entry keys: {}",
-                                    username, mode, selectedTier.keySet());
+                            LOGGER.error("LOOKUP_TIER_FIELD_MISSING: Mode entry keys: {}", selectedTier.keySet());
+                            report("TIER_MISSING", mode, null, null, "Selected mode entry is missing its tier value.", selectedTier.keySet().toString());
                             return null;
                         }
 
                         String tier = selectedTier.get("tier").getAsString();
                         if (tier.isBlank()) {
-                            LOGGER.error("LOOKUP_EMPTY_TIER: player='{}', mode='{}'.", username, mode);
+                            LOGGER.error("LOOKUP_EMPTY_TIER: API returned an empty tier value.");
+                            report("TIER_MISSING", mode, null, null, "API returned an empty tier value.", null);
                             return null;
                         }
 
-                        LOGGER.info("LOOKUP_SUCCESS: player='{}', mode='{}', tier='{}'.", username, mode, tier);
+                        LOGGER.info("LOOKUP_SUCCESS: mode='{}', tier='{}'.", mode, tier);
                         return new TierResult(tier, mode, 0);
                     } catch (RuntimeException error) {
-                        LOGGER.error("LOOKUP_JSON_PARSE_ERROR: player='{}', mode='{}'. Response preview: {}",
-                                username, mode, preview(response.body()), error);
+                        LOGGER.error("LOOKUP_JSON_PARSE_ERROR: Could not parse the API response.", error);
+                        report("BAD_JSON", mode, null, error.getClass().getSimpleName(), "Failed to parse the API response.", null);
                         return null;
                     }
                 })
                 .exceptionally(error -> {
                     Throwable cause = error instanceof CompletionException && error.getCause() != null
                             ? error.getCause() : error;
-                    LOGGER.error("LOOKUP_NETWORK_ERROR: player='{}', mode='{}'. {}", username, mode,
-                            cause.toString(), cause);
+                    LOGGER.error("LOOKUP_NETWORK_ERROR: mode='{}'. {}", mode, cause.getClass().getSimpleName(), cause);
+                    report("NETWORK_ERROR", mode, null, cause.getClass().getSimpleName(), "Request to MC-Tiers API failed.", null);
                     return null;
                 });
     }
 
-    private static String preview(String body) {
-        if (body == null) return "<no response body>";
-        String compact = body.replaceAll("\\s+", " ");
-        return compact.length() <= 300 ? compact : compact.substring(0, 300) + "...";
+    private static void report(String category, String mode, Integer httpStatus,
+                               String errorType, String message, String details) {
+        try {
+            JsonObject body = new JsonObject();
+            body.addProperty("version", MOD_VERSION);
+            body.addProperty("category", category);
+            body.addProperty("mode", mode);
+            if (httpStatus != null) body.addProperty("httpStatus", httpStatus);
+            if (errorType != null) body.addProperty("errorType", errorType);
+            if (message != null) body.addProperty("message", message);
+            if (details != null) body.addProperty("details", details);
+
+            HttpRequest request = HttpRequest.newBuilder(URI.create(REPORT_URL))
+                    .timeout(java.time.Duration.ofSeconds(5))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                    .thenAccept(response -> {
+                        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                            LOGGER.info("DIAGNOSTIC_REPORT_SENT: category='{}'.", category);
+                        } else {
+                            LOGGER.warn("DIAGNOSTIC_REPORT_FAILED: reporting service returned HTTP {}.", response.statusCode());
+                        }
+                    })
+                    .exceptionally(error -> {
+                        LOGGER.warn("DIAGNOSTIC_REPORT_FAILED: Could not reach diagnostic reporting service.");
+                        return null;
+                    });
+        } catch (RuntimeException error) {
+            LOGGER.warn("DIAGNOSTIC_REPORT_FAILED: Could not prepare diagnostic report.", error);
+        }
     }
 }
