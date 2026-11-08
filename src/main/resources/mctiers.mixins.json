@@ -3,8 +3,7 @@
   "package": "com.ducky6464.mctiers.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "PlayerEntityRendererMixin",
-    "EntityRendererMixin"
+    "PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
