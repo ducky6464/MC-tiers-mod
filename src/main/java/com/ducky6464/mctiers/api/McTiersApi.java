@@ -5,10 +5,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class McTiersApi {
     private static final String BASE = "https://mc-tiers.pages.dev/api/public/v1/player/";
@@ -31,28 +31,27 @@ public final class McTiersApi {
 
         return HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
-                    String body = response.body();
-                    if (response.statusCode() != 200 || !body.contains("\"found\":true")) {
+                    if (response.statusCode() != 200) return null;
+                    try {
+                        JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
+                        if (!root.has("found") || !root.get("found").getAsBoolean()) return null;
+
+                        // The public player endpoint stores all mode tiers inside its "tiers" object.
+                        // Reading the selected mode by ID makes new website modes work automatically.
+                        JsonObject tiers = root.getAsJsonObject("tiers");
+                        if (tiers == null || !tiers.has(mode)) return null;
+
+                        JsonElement selected = tiers.get(mode);
+                        if (selected == null || !selected.isJsonObject()) return null;
+                        JsonObject selectedTier = selected.getAsJsonObject();
+                        if (!selectedTier.has("tier") || selectedTier.get("tier").isJsonNull()) return null;
+
+                        String tier = selectedTier.get("tier").getAsString();
+                        if (tier.isBlank()) return null;
+                        return new TierResult(tier, mode, 0);
+                    } catch (RuntimeException ignored) {
                         return null;
                     }
-
-                    for (String key : modeKeys(mode)) {
-                        // Parse the selected mode object first, then read its tier field.
-                        // This does not depend on the JSON field order (tier/label can swap).
-                        Pattern modePattern = Pattern.compile(
-                                "\""+ Pattern.quote(key) + "\"\\s*:\\s*\\{([^{}]*)\\}"
-                        );
-                        Matcher modeMatcher = modePattern.matcher(body);
-                        if (!modeMatcher.find()) continue;
-
-                        Matcher tierMatcher = Pattern.compile(
-                                "\"tier\"\\s*:\\s*\"([^\"]+)\""
-                        ).matcher(modeMatcher.group(1));
-                        if (tierMatcher.find()) {
-                            return new TierResult(tierMatcher.group(1), mode, 0);
-                        }
-                    }
-                    return null;
                 })
                 .exceptionally(error -> null);
     }
