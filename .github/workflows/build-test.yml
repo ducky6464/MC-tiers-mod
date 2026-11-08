@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/1.21.11-nameplate-render-state
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
