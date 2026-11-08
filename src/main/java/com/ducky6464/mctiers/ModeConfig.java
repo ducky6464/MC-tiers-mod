@@ -47,7 +47,7 @@ public final class ModeConfig {
     private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("mctiers.properties");
 
     private static volatile List<ModeOption> modes = DEFAULT_MODES;
-    private static volatile String selectedMode = "mace";
+    private static volatile String selectedMode = "sword";
 
     private ModeConfig() {}
 
@@ -76,13 +76,20 @@ public final class ModeConfig {
         Properties properties = new Properties();
         try (Reader reader = Files.newBufferedReader(FILE)) {
             properties.load(reader);
-            String saved = canonicalId(properties.getProperty("mode", "mace"));
+            int configVersion = Integer.parseInt(properties.getProperty("config_version", "1"));
+            if (configVersion < 2) {
+                // Version 2 starts with Sword selected instead of the old Mace default.
+                selectedMode = "sword";
+                save();
+                return;
+            }
+            String saved = canonicalId(properties.getProperty("mode", "sword"));
             if (saved.matches("[a-z0-9_]{1,32}")) {
                 // Keep selections for modes added after this mod version was released.
                 selectedMode = saved;
             }
         } catch (IOException ignored) {
-            selectedMode = "mace";
+            selectedMode = "sword";
         }
     }
 
@@ -136,6 +143,7 @@ public final class ModeConfig {
 
     private static void save() {
         Properties properties = new Properties();
+        properties.setProperty("config_version", "2");
         properties.setProperty("mode", selectedMode);
         try {
             Files.createDirectories(FILE.getParent());
