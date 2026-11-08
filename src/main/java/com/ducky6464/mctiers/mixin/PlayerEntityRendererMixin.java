@@ -15,8 +15,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Locale;
-
 @Mixin(PlayerEntityRenderer.class)
 public abstract class PlayerEntityRendererMixin {
     @Inject(method = "hasLabel", at = @At("RETURN"), cancellable = true)
@@ -34,9 +32,8 @@ public abstract class PlayerEntityRendererMixin {
     }
 
     /**
-     * In 1.21.11 the player nameplate uses PlayerEntityRenderState.playerName.
-     * Append the tier to that per-frame field instead of changing the generic
-     * EntityRenderer display-name field.
+     * Append only the tier code to the actual 1.21.11 player-name render state.
+     * Do not add mode names, symbols, or inferred game-mode labels.
      */
     @Inject(method = "updateRenderState", at = @At("TAIL"))
     private void mctiers$appendTierToRenderState(
@@ -51,57 +48,11 @@ public abstract class PlayerEntityRendererMixin {
         if (result == null || result.tier() == null || result.tier().isBlank()) return;
         if (state.playerName == null) return;
 
-        Text icon = Text.literal(modeGlyph(result.mode())).formatted(modeColor(result.mode()));
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
                 .append(Text.literal(result.tier()).formatted(Formatting.WHITE))
-                .append(Text.literal(" "))
-                .append(icon)
                 .append(Text.literal("]").formatted(Formatting.GRAY));
 
         state.playerName = Text.empty().append(state.playerName).append(suffix);
-    }
-
-    // Text glyphs are part of the mod's text, not vanilla item textures.
-    private static String modeGlyph(String mode) {
-        return switch (normalize(mode)) {
-            case "mace" -> "✦";
-            case "spear" -> "▲";
-            case "sword" -> "◆";
-            case "uhc" -> "♥";
-            case "netpot" -> "●";
-            case "diamondpot" -> "✧";
-            case "crystal" -> "◇";
-            case "axe" -> "■";
-            case "smp" -> "⬟";
-            case "diamondsmp" -> "◈";
-            case "ht3cart" -> "✚";
-            default -> "◆";
-        };
-    }
-
-    private static Formatting modeColor(String mode) {
-        return switch (normalize(mode)) {
-            case "mace" -> Formatting.GOLD;
-            case "spear" -> Formatting.AQUA;
-            case "sword" -> Formatting.LIGHT_PURPLE;
-            case "uhc" -> Formatting.RED;
-            case "netpot" -> Formatting.DARK_PURPLE;
-            case "diamondpot" -> Formatting.BLUE;
-            case "crystal" -> Formatting.AQUA;
-            case "axe" -> Formatting.DARK_GREEN;
-            case "smp" -> Formatting.GREEN;
-            case "diamondsmp" -> Formatting.DARK_AQUA;
-            case "ht3cart" -> Formatting.YELLOW;
-            default -> Formatting.GRAY;
-        };
-    }
-
-    private static String normalize(String mode) {
-        if (mode == null) return "";
-        return mode.toLowerCase(Locale.ROOT)
-                .replace("-", "")
-                .replace("_", "")
-                .replace(" ", "");
     }
 }
