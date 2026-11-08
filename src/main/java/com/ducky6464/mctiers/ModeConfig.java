@@ -77,7 +77,8 @@ public final class ModeConfig {
         try (Reader reader = Files.newBufferedReader(FILE)) {
             properties.load(reader);
             String saved = canonicalId(properties.getProperty("mode", "mace"));
-            if (DEFAULT_MODES.stream().anyMatch(option -> option.id().equals(saved))) {
+            if (saved.matches("[a-z0-9_]{1,32}")) {
+                // Keep selections for modes added after this mod version was released.
                 selectedMode = saved;
             }
         } catch (IOException ignored) {
