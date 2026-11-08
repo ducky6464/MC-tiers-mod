@@ -42,14 +42,36 @@ public final class McTiersApi {
         return HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
                     int status = response.statusCode();
+                    String responseBody = response.body() == null ? "" : response.body();
                     if (status != 200) {
-                        LOGGER.error("LOOKUP_HTTP_ERROR: mode='{}', HTTP status={}.", mode, status);
-                        report("HTTP_ERROR", mode, status, null, "MC-Tiers API returned a non-200 status.", null);
+                        JsonObject failure = new JsonObject();
+                        failure.addProperty("status", status);
+                        failure.addProperty("contentType", response.headers().firstValue("content-type").orElse("unknown"));
+                        if (!responseBody.isBlank()) {
+                            failure.addProperty("responseBody", responseBody.substring(0, Math.min(responseBody.length(), 1400)));
+                            try {
+                                JsonElement parsedError = JsonParser.parseString(responseBody);
+                                if (parsedError.isJsonObject()) {
+                                    JsonObject errorJson = parsedError.getAsJsonObject();
+                                    if (errorJson.has("diagnostic_code")) failure.add("diagnostic_code", errorJson.get("diagnostic_code"));
+                                    if (errorJson.has("request_id")) failure.add("request_id", errorJson.get("request_id"));
+                                    if (errorJson.has("error")) failure.add("api_error", errorJson.get("error"));
+                                }
+                            } catch (RuntimeException ignored) {
+                                failure.addProperty("responseJson", false);
+                            }
+                        }
+                        String diagnosticCode = failure.has("diagnostic_code")
+                                ? failure.get("diagnostic_code").getAsString() : "HTTP_" + status;
+                        LOGGER.error("LOOKUP_HTTP_ERROR: mode='{}', HTTP status={}, diagnosticCode={}, responseBody={}",
+                                mode, status, diagnosticCode, failure.has("responseBody") ? failure.get("responseBody").getAsString() : "<empty>");
+                        report("HTTP_ERROR", mode, status, diagnosticCode,
+                                "MC-Tiers API returned HTTP " + status + ".", failure.toString());
                         return null;
                     }
 
                     try {
-                        JsonElement parsed = JsonParser.parseString(response.body());
+                        JsonElement parsed = JsonParser.parseString(responseBody);
                         if (!parsed.isJsonObject()) {
                             LOGGER.error("LOOKUP_BAD_JSON_SHAPE: Expected a JSON object.");
                             report("BAD_JSON", mode, null, "UnexpectedJsonShape", "API response was not a JSON object.", null);
