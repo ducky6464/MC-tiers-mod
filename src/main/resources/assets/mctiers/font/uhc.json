@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "minecraft:item/golden_apple.png",
+      "file": "minecraft:item/lava_bucket.png",
       "ascent": 8,
       "height": 8,
       "chars": [
