@@ -6,6 +6,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,7 +36,7 @@ public abstract class EntityRendererMixin {
         // Each mode font uses the exact Minecraft item/block texture used by the
         // website's ModeIcon component. The glyph is a bitmap texture, not a Unicode symbol.
         Text icon = Text.literal(MODE_ICON_GLYPH)
-                .styled(style -> style.withFont(Identifier.of("mctiers", fontName)));
+                .styled(style -> style.withFont(new StyleSpriteSource.Font(Identifier.of("mctiers", fontName))));
 
         Text suffix = Text.empty()
                 .append(Text.literal(" [").formatted(Formatting.GRAY))
