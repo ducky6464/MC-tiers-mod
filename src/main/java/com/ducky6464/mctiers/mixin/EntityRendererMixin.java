@@ -1,6 +1,7 @@
 package com.ducky6464.mctiers.mixin;
 
 import com.ducky6464.mctiers.McTiersClient;
+import com.ducky6464.mctiers.cache.TierResult;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
