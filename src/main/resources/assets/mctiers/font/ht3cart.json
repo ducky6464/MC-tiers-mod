@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "minecraft:item/crossbow.png",
+      "file": "mctiers:font/ht3cart.png",
       "ascent": 8,
       "height": 8,
       "chars": [

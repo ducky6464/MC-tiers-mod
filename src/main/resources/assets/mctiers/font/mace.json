@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "minecraft:item/mace.png",
+      "file": "mctiers:font/mace.png",
       "ascent": 8,
       "height": 8,
       "chars": [
