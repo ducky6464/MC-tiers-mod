@@ -16,9 +16,9 @@ For a custom instance path:
 bash tools/collect-mod-diagnostics.sh "/path/to/instance"
 ```
 
-The script packages `logs/latest.log`, `debug.log` when present, the five newest crash reports, JVM fatal-error logs, Java/OS details, and installed mod filenames. It does not copy JARs, worlds, or configuration files.
+The script creates an `error-extract.txt` index with exception/error lines and nearby stack-trace context, while preserving the complete `latest.log`, `debug.log`, five newest crash reports, JVM fatal-error logs, Java/OS details, and installed mod filenames in a `.tar.gz` archive. It does not copy JARs, worlds, or configuration files.
 
-Send the generated `.tar.gz` archive when asking for a crash diagnosis. Check it before sharing: logs may contain your computer username, server addresses, or chat messages.
+Send the generated archive when asking for a crash diagnosis. Check it before sharing: logs may contain your computer username, server addresses, or chat messages.
 
 ## Accuracy rules
 - Report the exact exception, message, and complete relevant `Caused by` chain.
